@@ -1,0 +1,108 @@
+html {
+    background-color: black;
+    overflow: hidden;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    height: 100%;
+    position: fixed;
+    /* prevent overscroll bounce*/
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    /* iOS velocity scrolling */
+}
+
+#rnbo-root {
+    height: 100vh;
+    width: 100vw;
+    background-color: black;
+}
+
+#background {
+    position: absolute;
+    z-index: -1;
+}
+
+h2,
+em {
+    width: 100%;
+}
+
+#rnbo-root {
+    margin: auto;
+    max-width: 540px;
+}
+
+#rnbo-clickable-keyboard {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#rnbo-clickable-keyboard>div {
+    margin: 2px;
+    border: solid black 1px;
+    min-height: 50px;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#rnbo-clickable-keyboard>div.clicked {
+    background: #222222;
+    color: #dddddd;
+}
+
+#rnbo-parameter-sliders {
+    display: flex;
+    flex-direction: column;
+}
+
+#rnbo-parameter-sliders>div {
+    display: flex;
+}
+
+#rnbo-parameter-sliders>div>input:first-of-type {
+    flex-grow: 1;
+}
+
+/**/
+#inport-form,
+#rnbo-parameter-sliders {
+    display: none;
+}
+
+/*UI*/
+.lines {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    height: 100vh;
+    z-index: 2;
+}
+
+.line {
+    height: 100%;
+    border-right: blue 1px solid;
+}
+
+#blob {
+    position: absolute;
+    background-color: blue;
+    border-radius: 50px;
+    width: 20px;
+    height: 20px;
+    z-index: 5;
+    left: 50vw;
+    top: 50vh;
+}
+
+.hidden {
+    visibility: hidden;
+}
