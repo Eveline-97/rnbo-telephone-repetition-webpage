@@ -298,7 +298,7 @@ function makeInportForm(device) {
             //idee is dat bij touchmove het event al is gestart (bij touchstart) en hier enkel nog de speed verandert kan worden
             let x = e.targetTouches[0].clientX;
             let y = e.targetTouches[0].clientY;
-            document.getElementById('rnbo-root').style.backgroundColor = 'red';
+            //document.getElementById('rnbo-root').style.backgroundColor = 'red';
             retrigger.value = scale(0, screen.height, 10, 330, y);
             index.value = scale(0, screen.width, 0, 8, x);
 
