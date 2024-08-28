@@ -74,14 +74,8 @@ async function setup() {
     // Connect the device to the web audio graph
     device.node.connect(outputNode);
 
-    // (Optional) Automatically create sliders for the device parameters
-    makeSliders(device);
-
     // (Optional) Create a form to send messages to RNBO inputs
     makeInportForm(device);
-
-    // (Optional) Attach listeners to outports so you can log messages from the RNBO patcher
-    //attachOutports(device);
 
     document.body.onclick = () => {
         context.resume();
@@ -108,106 +102,6 @@ function loadRNBOScript(version) {
     });
 }
 
-function makeSliders(device) {
-    let pdiv = document.getElementById("rnbo-parameter-sliders");
-    let noParamLabel = document.getElementById("no-param-label");
-    if (noParamLabel && device.numParameters > 0) pdiv.removeChild(noParamLabel);
-
-    // This will allow us to ignore parameter update events while dragging the slider.
-    let isDraggingSlider = false;
-    let uiElements = {};
-
-    device.parameters.forEach(param => {
-        // Subpatchers also have params. If we want to expose top-level
-        // params only, the best way to determine if a parameter is top level
-        // or not is to exclude parameters with a '/' in them.
-        // You can uncomment the following line if you don't want to include subpatcher params
-
-        //if (param.id.includes("/")) return;
-
-        // Create a label, an input slider and a value display
-        let label = document.createElement("label");
-        let slider = document.createElement("input");
-        let text = document.createElement("input");
-        let sliderContainer = document.createElement("div");
-        sliderContainer.appendChild(label);
-        sliderContainer.appendChild(slider);
-        sliderContainer.appendChild(text);
-
-        // Add a name for the label
-        label.setAttribute("name", param.name);
-        label.setAttribute("for", param.name);
-        label.setAttribute("class", "param-label");
-        label.textContent = `${param.name}: `;
-
-        // Make each slider reflect its parameter
-        slider.setAttribute("type", "range");
-        slider.setAttribute("class", "param-slider");
-        slider.setAttribute("id", param.id);
-        slider.setAttribute("name", param.name);
-        slider.setAttribute("min", param.min);
-        slider.setAttribute("max", param.max);
-        if (param.steps > 1) {
-            slider.setAttribute("step", (param.max - param.min) / (param.steps - 1));
-        } else {
-            slider.setAttribute("step", (param.max - param.min) / 1000.0);
-        }
-        slider.setAttribute("value", param.value);
-
-        // Make a settable text input display for the value
-        text.setAttribute("value", param.value.toFixed(1));
-        text.setAttribute("type", "text");
-
-        // Make each slider control its parameter
-        slider.addEventListener("pointerdown", () => {
-            isDraggingSlider = true;
-        });
-        slider.addEventListener("pointerup", () => {
-            isDraggingSlider = false;
-            slider.value = param.value;
-            text.value = param.value.toFixed(1);
-        });
-        slider.addEventListener("input", () => {
-            let value = Number.parseFloat(slider.value);
-            param.value = value;
-        });
-        slider.addEventListener('change', () => {
-            let value = Number.parseFloat(slider.value);
-            text.value = param.value.toFixed(1);
-            param.value = value;
-        })
-
-        // Make the text box input control the parameter value as well
-        text.addEventListener("keydown", (ev) => {
-            if (ev.key === "Enter") {
-                let newValue = Number.parseFloat(text.value);
-                if (isNaN(newValue)) {
-                    text.value = param.value;
-                } else {
-                    newValue = Math.min(newValue, param.max);
-                    newValue = Math.max(newValue, param.min);
-                    text.value = newValue;
-                    param.value = newValue;
-                }
-            }
-        });
-
-        // Store the slider and text by name so we can access them later
-        uiElements[param.id] = { slider, text };
-
-        // Add the slider element
-        pdiv.appendChild(sliderContainer);
-    });
-
-    // Listen to parameter changes from the device
-    // Dit zou eigenlijk al genoeg moeten zijn om 
-    device.parameterChangeEvent.subscribe(param => {
-        if (!isDraggingSlider)
-            uiElements[param.id].slider.value = param.value;
-        uiElements[param.id].text.value = param.value.toFixed(1);
-    });
-}
-
 function makeInportForm(device) {
     const idiv = document.getElementById("rnbo-inports");
     const inportSelect = document.getElementById("inport-select");
@@ -223,8 +117,6 @@ function makeInportForm(device) {
     if (inports.length === 0) {
         return;
     } else {
-        //dit verplaatst want wil geen tekst
-        //idiv.removeChild(document.getElementById("inport-form"));
         inports.forEach(inport => {
             const option = document.createElement("option");
             option.innerText = inport.tag;
@@ -253,10 +145,7 @@ function makeInportForm(device) {
         2 length
         3 index
         */
-        //let speed = device.parameters[0];
-        let retrigger = device.parameters[1]
-        //let start = device.parameters[2];
-        //let length = device.parameters[3];
+        let retrigger = device.parameters[1];
         let index = device.parameters[4];
 
         index.value = 2;
@@ -307,46 +196,26 @@ function makeInportForm(device) {
         })
 
         document.addEventListener('touchmove', e => {
-            //idee is dat bij touchmove het event al is gestart (bij touchstart) en hier enkel nog de speed verandert kan worden
+            //with touchmove, event already on (1 from touchstart)
+            //touchmove only changes parameters
             let x = e.targetTouches[0].clientX;
             let y = e.targetTouches[0].clientY;
-            //document.getElementById('rnbo-root').style.backgroundColor = 'red';
             retrigger.value = scale(0, screen.height, 10, 330, y);
             index.value = scale(0, screen.width, 0, 8, x);
-
 
             blob.style.left = x - 10 + 'px';
             blob.style.top = y - 10 + 'px';
         })
+
         document.addEventListener('touchend', () => {
             document.getElementById('rnbo-root').style.backgroundColor = 'black';
+            //put 'metro' out
             let messageEvent = new RNBO.MessageEvent(RNBO.TimeNow, inportTag, 0);
             device.scheduleEvent(messageEvent);
             blob.classList.add('hidden');
         })
     }
     console.log(device.parameters[1].value);
-}
-
-
-function attachOutports(device) {
-    const outports = device.outports;
-    if (outports.length < 1) {
-        document.getElementById("rnbo-console").removeChild(document.getElementById("rnbo-console-div"));
-        return;
-    }
-
-    document.getElementById("rnbo-console").removeChild(document.getElementById("no-outports-label"));
-    device.messageEvent.subscribe((ev) => {
-
-        // Ignore message events that don't belong to an outport
-        if (outports.findIndex(elt => elt.tag === ev.tag) < 0) return;
-
-        // Message events have a tag as well as a payload
-        console.log(`${ev.tag}: ${ev.payload}`);
-
-        document.getElementById("rnbo-console-readout").innerText = `${ev.tag}: ${ev.payload}`;
-    });
 }
 
 function scale(minIn, maxIn, minOut, maxOut, value) {
