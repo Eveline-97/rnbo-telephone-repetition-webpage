@@ -261,19 +261,31 @@ function makeInportForm(device) {
 
         index.value = 2;
 
-        let alreadyFullscreen = false;
+        let isFullscreen = false;
         let blob = document.getElementById('blob');
 
-        document.addEventListener('touchstart', e => {
-            //first time
-            //fullscreen
-            if (document.getElementById('rnbo-root').requestFullscreen) {
-                if (!alreadyFullscreen) {
-                    document.getElementById('rnbo-root').requestFullscreen();
-                }
+        function makeFullScreen() {
+            let root = document.getElementById('rnbo-root');
+            if (root.requestFullscreen) {
+                root.requestFullscreen();
+                isFullscreen = true;
+            } else if (root.webkitRequestFullScreen) {
+                root.webkitRequestFullScreen();
+                isFullscreen = true;
+            } else if (root.mozRequestFullScreen) {
+                root.mozRequestFullScreen();
+                isFullscreen = true;
+            } else if (root.webkitEnterFullScreen) {
+                root.webkitEnterFullScreen();
+                isFullscreen = true;
             } else {
                 console.log('No fullscreen method found');
             }
+        }
+
+        document.addEventListener('touchstart', e => {
+            if (!isFullscreen) makeFullScreen();
+            
             // Turn the text into a list of numbers (RNBO messages must be numbers, not text)
             const values = inportText.value.split(/\s+/).map(s => parseFloat(s));
 
@@ -283,8 +295,8 @@ function makeInportForm(device) {
             let y = touch.clientY;
 
             blob.classList.remove('hidden');
-            blob.style.left = x-10 + 'px';
-            blob.style.top = y-10 + 'px';
+            blob.style.left = x - 10 + 'px';
+            blob.style.top = y - 10 + 'px';
 
             retrigger.value = scale(0, screen.height, 10, 330, y);
             index.value = scale(0, screen.width, 0, 8, x);
@@ -303,8 +315,8 @@ function makeInportForm(device) {
             index.value = scale(0, screen.width, 0, 8, x);
 
 
-            blob.style.left = x-10 + 'px';
-            blob.style.top = y-10 + 'px';
+            blob.style.left = x - 10 + 'px';
+            blob.style.top = y - 10 + 'px';
         })
         document.addEventListener('touchend', () => {
             document.getElementById('rnbo-root').style.backgroundColor = 'black';
